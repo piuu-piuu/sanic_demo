@@ -53,11 +53,15 @@ async def proceed_payment(request, *args, **kwargs):
             if not wallet:
                 wallet = Wallet(id = billid, total = amount, user_id = person.id)
                 session.add_all([wallet])
+                trans = Transaction(wallet_id = wallet.id, sum = amount)
+                session.add_all([trans])
                 return text(str(person.name + ' has new wallet.'))
             # wallet = result.scalar()
             total = wallet.total +int(amount)
             wallet.total = total
-                        
+            trans = Transaction(wallet_id = wallet.id, sum = amount)
+            session.add_all([trans])
+
             return text(str(person.name + ' has new transaction.'))
 
 

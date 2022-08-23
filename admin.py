@@ -14,47 +14,38 @@ from server_init import app, HOST, PORT
 from sanic_jwt.decorators import inject_user
 
 
-# Возможности админа:
-# 1.  	Видеть все товары
-# 2.  	Видеть всех пользователей и их счета
-# 3.  	Включать/отключать пользователей
-# 4.  	Создавать/редактировать/удалять товары
-
-
-@app.post("/newitem/<cap>/<descr>")
+@app.post("/newitem/<cap>/<descr>/<price>")
 @scoped('admin')
-async def new_item(request, cap, descr):
+async def new_item(request, cap, descr, price):
     session = request.ctx.session
     async with session.begin():
-        new_item = Item (name = cap, desc = descr)
+        new_item = Item (name = cap.replace("%20", " "), desc = descr.replace("%20", " "), price = int(price))
         session.add_all([new_item])
         return json(new_item.to_dict())
 
 
-@app.post("/edititem/<cap>/<descr>/<newcap>/<newdescr>")
+@app.post("/edititem/<id>/<newcap>/<newdescr>/<newprice>")
 @scoped('admin')
-async def new_item(request, cap, descr, newcap, newdescr):
+async def edit_item(request, id, newcap, newdescr, newprice):
     session = request.ctx.session
     async with session.begin():
-        stmt = select(Item).where((Item.name == cap)and(Item.desc == descr))
+        stmt = select(Item).where(Item.id == id)
         result = await session.execute(stmt)
         item = result.scalar()
         item.name = newcap 
         item.desc = newdescr
+        item.price = newprice
         return json(item.to_dict())
 
 
-@app.post("/delitem/<cap>/<descr>")
+@app.post("/delitem/<id>")
 @scoped('admin')
-async def new_item(request, cap, descr):
+async def del_item(request, id):
     session = request.ctx.session
     async with session.begin():
-        stmt = delete(Item).where((Item.name == cap)and(Item.desc == descr))
+        stmt = delete(Item).where((Item.id == int(id)))
         result = await session.execute(stmt)
-        # item = result.scalar()
-        # ?
-        session.delete([result])
-    return json(result.to_dict())
+        return text("Item deleted")
 
 
 @app.get("/user/<id:int>/")
@@ -72,34 +63,32 @@ async def get_user(request, id):
 
 @app.get("/udeactivate/<name>/")
 @scoped('admin')
-async def get_user(request, name):
+async def un_user(request, name):
     session = request.ctx.session
     async with session.begin():
-        stmt = select(User).where(User.id == name)
+        stmt = select(User).where(User.name == name)
         result = await session.execute(stmt)
         person = result.scalar()
         person.active = False
-        session.add_all([person])
         return text(f"{person.name} inactive")
 
 
 @app.get("/uactivate/<name>/")
 @scoped('admin')
-async def un_user(request, name):
+async def act_user(request, name):
     session = request.ctx.session
     async with session.begin():
-        stmt = select(User).where(User.id == name)
+        stmt = select(User).where(User.name == name)
         result = await session.execute(stmt)
         person = result.scalar()
         person.active = True
         person.activation = ""
-        session.add_all([person])
         return text(f"{person.name} active")
 
 
 @app.get("/userlist")
 @scoped('admin')
-async def get_users(request):
+async def all_users(request):
     session = request.ctx.session
     async with session.begin():
         stmt = select(User.id)
@@ -109,4 +98,9 @@ async def get_users(request):
         result = await session.execute(stmt)
         users = result.scalars()
     return response.raw(f"{[i for i in userid]}, {[u for u in users]}")
-    
+
+
+
+# Возможности админа:
+# 1.  	Видеть все товары
+# 2.  	Видеть всех пользователей и их счета
