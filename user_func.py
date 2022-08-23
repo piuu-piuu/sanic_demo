@@ -12,16 +12,8 @@ import uuid
 from models import User, Item, Transaction, Wallet
 from server_init import app, HOST, PORT
 
-# user
-# /register +
-#   Регистрация (по паролю и логину, возвращает ссылку активации)
-
-# /view_stock
 # /buy_stock
 # /history
-
-
-# /register
 
 @app.post("/new/<username>/<password>")
 async def new_user(request, username, password):
@@ -56,9 +48,15 @@ async def activate_user(request, token):
 
 @app.get("/stock")
 @protected
-async def show_stock(request):
+async def get_users(request):
     session = request.ctx.session
     async with session.begin():
-        return json("{'stock':'stock'}")
+        stmt = select(Item.name)
+        result = await session.execute(stmt)
+        itemname = result.scalars()
+        stmt = select(Item.desc)
+        result = await session.execute(stmt)
+        descr = result.scalars()
+    return response.raw(f"{[i for i in itemname]}, {[d for d in descr]}")
 
 

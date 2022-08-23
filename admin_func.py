@@ -59,27 +59,18 @@ async def new_item(request, cap, descr):
     return json(result.to_dict())
 
 
-@app.get("/stock/<cap>/<descr>")
+@app.get("/user/<id:int>/")
 @scoped('admin')
-async def new_item(request, cap, descr):
+async def get_user(request, id):
     session = request.ctx.session
     async with session.begin():
-        
-        pass
-    # return json(item.to_dict())
-
-
-@app.get("/user/<pk:int>/")
-@scoped('admin')
-async def get_user(request, pk):
-    session = request.ctx.session
-    async with session.begin():
-        stmt = select(User).where(User.id == pk)
+        stmt = select(User).where(User.id == id)
         result = await session.execute(stmt)
         person = result.scalar()
     if not person:
         return response.json({})
     return json(person.to_dict())
+
 
 @app.get("/udeactivate/<name>/")
 @scoped('admin')
@@ -91,11 +82,12 @@ async def get_user(request, name):
         person = result.scalar()
         person.active = False
         session.add_all([person])
-    return json(person.to_dict())
+        return text(f"{person.name} inactive")
+
 
 @app.get("/uactivate/<name>/")
 @scoped('admin')
-async def get_user(request, name):
+async def un_user(request, name):
     session = request.ctx.session
     async with session.begin():
         stmt = select(User).where(User.id == name)
@@ -104,10 +96,11 @@ async def get_user(request, name):
         person.active = True
         person.activation = ""
         session.add_all([person])
-    return json(person.to_dict())
+        return text(f"{person.name} active")
 
-# test
-@app.get("/usertable")
+
+@app.get("/userlist")
+@scoped('admin')
 async def get_users(request):
     session = request.ctx.session
     async with session.begin():
@@ -117,6 +110,5 @@ async def get_users(request):
         stmt = select(User.name)
         result = await session.execute(stmt)
         users = result.scalars()
-    # return json(dict(zip([i for i in userid],[u for u in users])))
     return response.raw(f"{[i for i in userid]}, {[u for u in users]}")
     
