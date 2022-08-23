@@ -1,3 +1,4 @@
+from logging import log
 from sanic import response
 from sanic_jwt.decorators import protected
 from sanic_jwt.decorators import scoped
@@ -11,6 +12,9 @@ import uuid
 
 from models import User, Item, Transaction, Wallet
 from server_init import app, HOST, PORT
+
+import base64
+
 
 
 @app.post("/new/<username>/<password>")
@@ -75,10 +79,62 @@ async def all_users(request):
     return response.raw(f"{resp}")
 
 
-# 4.  	Покупка товара, просто списывает с баланса стоимость товара, при условии наличия на балансе счёта достаточного количества средств
+
+def get_user_id(token):
+    base64_message = base64.b64decode(token)
+    return str((base64_message)).split('"user_id":')[1].split(',')[0]
+
+
+@app.get("/buy/<sid>")
+@protected
+async def buy(request, sid):
+    id = get_user_id(request.token)
+    session = request.ctx.session
+    async with session.begin():
+        stmt = select(Item).where(Item.id == int(sid))
+        result = await session.execute(stmt)
+        item = result.scalar()
+        
+        stmt = select(Wallet).where(Wallet.user_id == int(id))
+        result = await session.execute(stmt)
+        wallet = result.scalar()
+
+        total = int(wallet.total) - int(item.price)
+        if total >= 0:
+            wallet.total = total
+            return text(f"{wallet.total}: {wallet.id}")
+        return text(f"{total}: {wallet.id}")
+
+
+@app.get("/mywallets")
+@protected
+async def mywallets(request):
+    id = int(get_user_id(request.token))
+    session = request.ctx.session
+    async with session.begin():
+        stmt = select(Wallet.user_id).where(Wallet.user_id == id)
+        result = await session.execute(stmt)
+        wallets = result.scalars()
+        stmt = select(Wallet.total).where(Wallet.user_id == id)
+        result = await session.execute(stmt)
+        totals = result.scalars()
+        resp = list(map(lambda x,y:(x,y),wallets,totals))
+        return response.raw(f"{resp}")
 
 
 
-
-# 5.  	Просмотр баланса всех счетов
-# 6.    Просмотр истории транзакций
+@app.get("/mytrans")
+@protected
+async def mytrans(request):
+    id = int(get_user_id(request.token))
+    session = request.ctx.session
+    async with session.begin():
+        stmt = select(Transaction.wallet_id).where(Transaction.user_id == id)
+        result = await session.execute(stmt)
+        t_ids = result.scalars()
+        stmt = select(Transaction.sum).where(Transaction.user_id == id)
+        result = await session.execute(stmt)
+        t_sums = result.scalars()
+        resp = list(map(lambda x, y : (x, y) , t_ids, t_sums))
+        return response.raw(f"{resp}")
+        

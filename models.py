@@ -1,5 +1,3 @@
-# ./models.py
-
 from sanic import Sanic
 from sanic_jwt import exceptions
 from sanic_jwt import initialize
@@ -56,6 +54,7 @@ class Transaction(BaseModel):
     __tablename__ = "transaction" 
     wallet_id = Column(ForeignKey("wallet.id"))
     sum = Column(Numeric())
+    user_id = Column(INTEGER())
 
 
 
