@@ -1,0 +1,16 @@
+Регистрация
+curl --location --request POST http://0.0.0.0:8000/new/fewser/12345
+curl --location --request GET 'http://0.0.0.0:8000/activate/167765628685700204992080780877260904122'
+
+Авторизация
+curl -iv -H "Content-Type: application/json" -d '{"username": "user1", "password": "abcxyz"}' http://localhost:8000/auth
+curl -iv -H "Authorization: Bearer <JWT>" http://localhost:8000/auth/verify
+curl -X GET -H "Authorization: Bearer <JWT>" http://localhost:8000/stock
+curl -iv -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE2NjExOTE4NjEsInNjb3BlcyI6WyJhZG1pbiJdfQ.REOevD4PR9jnpZr34swytEZLawuxtm73GggZP9N-0Bw" http://localhost:8000/user/1 
+
+curl -iv -H "Content-Type: application/json" -d '{"username": "admin", "123456": "abcxyz"}' http://localhost:8000/auth
+
+
+webhook
+curl -iv -H "Content-Type: application/json" -d '{"signature": "f4eae5b2881d8b6a1455f62502d08b2258d80084", "transaction_id": "1234567", "user_id": "1", "bill_id": "123456", "amount": "100"}' http://localhost:8000/payment/webhook
+ 
