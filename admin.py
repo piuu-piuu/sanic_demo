@@ -1,16 +1,11 @@
 from sanic import response
 from sanic_jwt.decorators import protected, scoped
 from sanic.response import json, text
-
 from sqlalchemy import delete, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import create_async_engine
-
-
-
 from models import User, Item, Transaction, Wallet
 from server_init import app, HOST, PORT
-
 from sanic_jwt.decorators import inject_user
 
 
@@ -97,10 +92,23 @@ async def all_users(request):
         stmt = select(User.name)
         result = await session.execute(stmt)
         users = result.scalars()
-    return response.raw(f"{[i for i in userid]}, {[u for u in users]}")
+        resp = list(map(lambda x,y:(x,y),userid, users))
+    return response.raw(f"{resp}")
+
+
+@app.get("/walletlist")
+@scoped('admin')
+async def all_users(request):
+    session = request.ctx.session
+    async with session.begin():
+        stmt = select(Wallet.user_id)
+        result = await session.execute(stmt)
+        users = result.scalars()
+        stmt = select(Wallet.total)
+        result = await session.execute(stmt)
+        totals = result.scalars()
+        resp = list(map(lambda x,y:(x,y),users,totals))
+    return response.raw(f"{resp}")
 
 
 
-# Возможности админа:
-# 1.  	Видеть все товары
-# 2.  	Видеть всех пользователей и их счета

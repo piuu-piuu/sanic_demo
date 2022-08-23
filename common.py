@@ -60,8 +60,25 @@ async def get_users(request):
     return response.raw(f"{[i for i in itemname]}, {[d for d in descr]}, {[p for p in prices]}")
 
 
-# 3.  	Просмотр списка товаров
+@app.get("/stocklist")
+@protected
+async def all_users(request):
+    session = request.ctx.session
+    async with session.begin():
+        stmt = select(Item.name)
+        result = await session.execute(stmt)
+        items = result.scalars()
+        stmt = select(Item.price)
+        result = await session.execute(stmt)
+        prices = result.scalars()
+        resp = list(map(lambda x,y:(x,y),items,prices))
+    return response.raw(f"{resp}")
+
 
 # 4.  	Покупка товара, просто списывает с баланса стоимость товара, при условии наличия на балансе счёта достаточного количества средств
+
+
+
+
 # 5.  	Просмотр баланса всех счетов
 # 6.    Просмотр истории транзакций

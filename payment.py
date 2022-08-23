@@ -66,6 +66,7 @@ async def proceed_payment(request, *args, **kwargs):
 
 
 if __name__ == "__main__":
+    
     transaction_id = 123
     user_id = 1
     bill_id = 123

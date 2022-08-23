@@ -38,6 +38,7 @@ initialize(
     authenticate=authenticate,
     add_scopes_to_payload=my_scope_extender)
 
-if __name__ == "__main__":
 
+
+if __name__ == "__main__":
     app.run(host = HOST, port = PORT, debug = True) 
