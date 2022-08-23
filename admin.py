@@ -28,7 +28,7 @@ async def new_item(request, cap, descr):
     async with session.begin():
         new_item = Item (name = cap, desc = descr)
         session.add_all([new_item])
-    return json(new_item.to_dict())
+        return json(new_item.to_dict())
 
 
 @app.post("/edititem/<cap>/<descr>/<newcap>/<newdescr>")
@@ -41,8 +41,7 @@ async def new_item(request, cap, descr, newcap, newdescr):
         item = result.scalar()
         item.name = newcap 
         item.desc = newdescr
-        session.add_all([item])
-    return json(item.to_dict())
+        return json(item.to_dict())
 
 
 @app.post("/delitem/<cap>/<descr>")
@@ -54,7 +53,7 @@ async def new_item(request, cap, descr):
         result = await session.execute(stmt)
         # item = result.scalar()
         # ?
-        session.add_all([result])
+        session.delete([result])
     return json(result.to_dict())
 
 

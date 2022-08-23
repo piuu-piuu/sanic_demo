@@ -14,11 +14,13 @@ from server_init import app, HOST, PORT
 from Crypto.Hash import SHA1
 
 
-PRIVATE_KEY = 'private_key'
+PRIVATE_KEY = '123456789'
 
 def get_signature(private_key, transaction_id, user_id, bill_id, amount):
-    signature = SHA1.new().update(f'{private_key}:{transaction_id}:{user_id}:{bill_id}:{amount}'.encode()).hexdigest()
-    return signature
+    s = f'{private_key}:{transaction_id}:{user_id}:{bill_id}:{amount}'.encode()
+    signature = SHA1.new()
+    signature.update(s)
+    return signature.hexdigest()
 
 @app.post("/payment/webhook")
 async def proceed_payment(request, *args, **kwargs):
@@ -29,7 +31,8 @@ async def proceed_payment(request, *args, **kwargs):
     amount = request.json.get("amount", None)
     session = request.ctx.session
     async with session.begin():
-        stmt = select(User.name).where(User.id == user_id)
+        userid = int(user_id)
+        stmt = select(User).where(User.id == userid)
         result = await session.execute(stmt)
         person = result.scalar()
         if not person:
@@ -41,16 +44,35 @@ async def proceed_payment(request, *args, **kwargs):
             stmt = select(User).where(User.id == userid)
             result = await session.execute(stmt)
             person = result.scalar()
+
             billid = int(bill_id)
             stmt = select(Wallet).where(Wallet.id == billid)
+            result = await session.execute(stmt)
             wallet = result.scalar()
+
             if not wallet:
-                wallet = Wallet(total = 0, user_id = person.id)
+                wallet = Wallet(id = billid, total = amount, user_id = person.id)
                 session.add_all([wallet])
-            wallet = Wallet(total = int(amount), user_id = person.id)
-            session.add_all([wallet])
-            return text(str(person.name + 'has new transaction.'))
+                return text(str(person.name + ' has new wallet.'))
+            # wallet = result.scalar()
+            total = wallet.total +int(amount)
+            wallet.total = total
+                        
+            return text(str(person.name + ' has new transaction.'))
 
 
 if __name__ == "__main__":
-    pass
+    transaction_id = 123
+    user_id = 1
+    bill_id = 123
+    amount = 100
+    # 1b874badf208a9fa8a1f5a15490fc0c8751f3035
+
+    transaction_id = 123
+    user_id = 1
+    bill_id = 1
+    amount = 100
+    # f9b7f8475063c78ba174c542f07d27d940bad4b0
+
+    s = get_signature(PRIVATE_KEY, transaction_id, user_id, bill_id, amount)
+    print(s)

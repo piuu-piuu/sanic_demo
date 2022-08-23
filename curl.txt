@@ -12,5 +12,6 @@ curl -iv -H "Content-Type: application/json" -d '{"username": "admin", "123456":
 
 
 webhook
-curl -iv -H "Content-Type: application/json" -d '{"signature": "f4eae5b2881d8b6a1455f62502d08b2258d80084", "transaction_id": "1234567", "user_id": "1", "bill_id": "123456", "amount": "100"}' http://localhost:8000/payment/webhook
+curl -iv -H "Content-Type: application/json" -d '{"signature": "1b874badf208a9fa8a1f5a15490fc0c8751f3035", "transaction_id": "123", "user_id": "1", "bill_id": "123", "amount": "100"}' http://localhost:8000/payment/webhook
+curl -iv -H "Content-Type: application/json" -d '{"signature": "f9b7f8475063c78ba174c542f07d27d940bad4b0", "transaction_id": "123", "user_id": "1", "bill_id": "1", "amount": "100"}' http://localhost:8000/payment/webhook
  

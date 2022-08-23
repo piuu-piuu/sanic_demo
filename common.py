@@ -53,7 +53,6 @@ async def activate_user(request, token):
             return response.json({"Activation error": "User does not exists"})
         person.active = True
         person.activation = ""
-        session.add_all([person])
         return text(str(person.id))
 
 
