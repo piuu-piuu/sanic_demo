@@ -4,8 +4,8 @@ from sanic import Sanic
 from sanic_jwt import exceptions
 from sanic_jwt import initialize
 
-from enum import unique
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import insert
+from sqlalchemy import create_engine
 from sqlalchemy import ARRAY, INTEGER, Numeric, Column, ForeignKey, String, Boolean
 from sqlalchemy.orm import declarative_base
 
@@ -38,7 +38,7 @@ class Item(BaseModel):
     __tablename__ = "item" 
     name = Column(String())
     desc = Column(String())
-    price = (Numeric())
+    price = Column(Numeric())
 
     def to_dict(self):
         return {"name": self.name, "description": self.desc, "price": self.price}
@@ -46,7 +46,7 @@ class Item(BaseModel):
 
 class Wallet(BaseModel):
     __tablename__ = "wallet" 
-    total = (Column(Numeric()))
+    total = Column(Numeric())
     user_id = Column(ForeignKey("user.id"))
     def to_dict(self):
         return {"name": self.name, "description": self.desc}
@@ -61,5 +61,43 @@ class Transaction(BaseModel):
 
 
 if __name__ == "__main__":
+ 
     engine  = create_engine('postgresql://demo:demopwd@localhost:5432/demo', echo=True)
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
+    
+    # test users
+    stmt = (
+        insert(User).
+        values(name='demouser', pwd='12345', active = True, activation = "", scopes = ['user'])
+    )
+    engine.execute(stmt)
+    stmt = (
+        insert(User).
+        values(name='admin', pwd='123456', active = True, activation = "", scopes = ['admin'])
+    )
+    engine.execute(stmt)
+    stmt = (
+        insert(User).
+        values(name='newuser', pwd='12345', active = False, activation = "", scopes = ['user'])
+    )
+    engine.execute(stmt)
+
+    # test stock
+    stmt = (
+        insert(Item).
+        values(name='SmartCleaner', desc='Finest quality', price = 100)
+    )
+    engine.execute(stmt)
+    stmt = (
+        insert(Item).
+        values(name='MultiTV', desc='10000 channels free', price = 200)
+    )
+    engine.execute(stmt)
+
+    # test wallet
+    stmt = (
+        insert(Wallet).
+        values(total = 2000, user_id = 1)
+    )
+    engine.execute(stmt)

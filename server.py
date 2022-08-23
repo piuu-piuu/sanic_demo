@@ -5,8 +5,8 @@ from sqlalchemy import select
 
 from models import User
 from server_init import app, HOST, PORT
-import user_func
-import admin_func
+import common
+import admin
 import payment
 
 
