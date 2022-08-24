@@ -1,4 +1,3 @@
-from logging import log
 from sanic import response
 from sanic_jwt.decorators import protected
 from sanic_jwt.decorators import scoped
@@ -14,7 +13,7 @@ from models import User, Item, Transaction, Wallet
 from server_init import app, HOST, PORT
 
 import base64
-
+import jwt
 
 
 @app.post("/new/<username>/<password>")
@@ -28,7 +27,7 @@ async def new_user(request, username, password):
             return response.json({"New user error": "User exists"})
         token = str(uuid.uuid4().int)
         activation_link = f"http://{HOST}:{PORT}/activate/{token}"
-        person = User(name=username, admin = False, active = False, activation = token, pwd = password, scopes = ['user'])
+        person = User(name=username, active = False, activation = token, pwd = password, scopes = ['user'])
         session.add_all([person])
         return text(activation_link)
 
@@ -47,25 +46,8 @@ async def activate_user(request, token):
         return text(str(person.id))
 
 
-@app.get("/stock")
-@protected
-async def get_users(request):
-    session = request.ctx.session
-    async with session.begin():
-        stmt = select(Item.name)
-        result = await session.execute(stmt)
-        itemname = result.scalars()
-        stmt = select(Item.desc)
-        result = await session.execute(stmt)
-        descr = result.scalars()
-        stmt = select(Item.price)
-        result = await session.execute(stmt)
-        prices = result.scalars()
-    return response.raw(f"{[i for i in itemname]}, {[d for d in descr]}, {[p for p in prices]}")
-
-
 @app.get("/stocklist")
-@protected
+@protected()
 async def all_users(request):
     session = request.ctx.session
     async with session.begin():
@@ -81,12 +63,12 @@ async def all_users(request):
 
 
 def get_user_id(token):
-    base64_message = base64.b64decode(token)
-    return str((base64_message)).split('"user_id":')[1].split(',')[0]
-
+    decoded = jwt.decode(token, options={"verify_signature": False})
+    return str(dict(decoded)['user_id'])
+  
 
 @app.get("/buy/<sid>")
-@protected
+@protected()
 async def buy(request, sid):
     id = get_user_id(request.token)
     session = request.ctx.session
@@ -107,7 +89,7 @@ async def buy(request, sid):
 
 
 @app.get("/mywallets")
-@protected
+@protected()
 async def mywallets(request):
     id = int(get_user_id(request.token))
     session = request.ctx.session
@@ -124,7 +106,7 @@ async def mywallets(request):
 
 
 @app.get("/mytrans")
-@protected
+@protected()
 async def mytrans(request):
     id = int(get_user_id(request.token))
     session = request.ctx.session
@@ -137,4 +119,10 @@ async def mytrans(request):
         t_sums = result.scalars()
         resp = list(map(lambda x, y : (x, y) , t_ids, t_sums))
         return response.raw(f"{resp}")
+
+
+
+if __name__ == "__main__":
+    token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE2NjEzMjQwOTEsInNjb3BlcyI6WyJ1c2VyIl19.7BnX1VZY7m-BWsepwTBbrZakbcbcm6C-25pggKSXTxM"
+    print(get_user_id(token))
         

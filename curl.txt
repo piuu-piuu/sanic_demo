@@ -1,13 +1,17 @@
 Регистрация
 curl --location --request POST http://0.0.0.0:8000/new/fewser/12345
-curl --location --request GET 'http://0.0.0.0:8000/activate/167765628685700204992080780877260904122'
+curl --location --request GET 'http://0.0.0.0:8000/activate/< random uuid, get url with it from responce >'
 
 Авторизация
-curl -iv -H "Content-Type: application/json" -d '{"username": "user1", "password": "abcxyz"}' http://localhost:8000/auth
+curl -iv -H "Content-Type: application/json" -d '{"username": "fewser", "password": "12345"}' http://localhost:8000/auth
 curl -iv -H "Authorization: Bearer <JWT>" http://localhost:8000/auth/verify
-curl -X GET -H "Authorization: Bearer <JWT>" http://localhost:8000/stock
-curl -iv -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE2NjExOTE4NjEsInNjb3BlcyI6WyJhZG1pbiJdfQ.REOevD4PR9jnpZr34swytEZLawuxtm73GggZP9N-0Bw" http://localhost:8000/user/1 
 
+all other paths:
+curl -X GET -H "Authorization: Bearer <JWT>" http://localhost:8000/stock
+... etc ...
+
+examples (change JWT!):
+curl -iv -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE2NjEzMjQwOTEsInNjb3BlcyI6WyJ1c2VyIl19.7BnX1VZY7m-BWsepwTBbrZakbcbcm6C-25pggKSXTxM" http://localhost:8000/mywallets 
 curl -iv -H "Content-Type: application/json" -d '{"username": "admin", "123456": "abcxyz"}' http://localhost:8000/auth
 
 

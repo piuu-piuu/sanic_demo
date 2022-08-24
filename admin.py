@@ -8,8 +8,8 @@ from models import User, Item, Transaction, Wallet
 from server_init import app, HOST, PORT
 from sanic_jwt.decorators import inject_user
 
-
-@app.post("/newitem/<cap>/<descr>/<price>")
+# spaces must be %20
+@app.get("/newitem/<cap>/<descr>/<price>")
 @scoped('admin')
 async def new_item(request, cap, descr, price):
     session = request.ctx.session
@@ -19,21 +19,21 @@ async def new_item(request, cap, descr, price):
         return json(new_item.to_dict())
 
 
-@app.post("/edititem/<id>/<newcap>/<newdescr>/<newprice>")
+@app.get("/edititem/<id>/<newcap>/<newdescr>/<newprice>")
 @scoped('admin')
 async def edit_item(request, id, newcap, newdescr, newprice):
     session = request.ctx.session
     async with session.begin():
-        stmt = select(Item).where(Item.id == id)
+        stmt = select(Item).where(Item.id == int(id))
         result = await session.execute(stmt)
         item = result.scalar()
-        item.name = newcap 
-        item.desc = newdescr
-        item.price = newprice
+        item.name = newcap.replace("%20", " ") 
+        item.desc = newdescr.replace("%20", " ")
+        item.price = int(newprice)
         return json(item.to_dict())
 
 
-@app.post("/delitem/<id>")
+@app.get("/delitem/<id>")
 @scoped('admin')
 async def del_item(request, id):
     session = request.ctx.session
@@ -42,18 +42,6 @@ async def del_item(request, id):
         result = await session.execute(stmt)
         return text("Item deleted")
 
-
-@app.get("/user/<id:int>/")
-@scoped('admin')
-async def get_user(request, id):
-    session = request.ctx.session
-    async with session.begin():
-        stmt = select(User).where(User.id == id)
-        result = await session.execute(stmt)
-        person = result.scalar()
-    if not person:
-        return response.json({})
-    return json(person.to_dict())
 
 
 @app.get("/udeactivate/<name>/")

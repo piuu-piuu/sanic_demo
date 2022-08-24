@@ -22,6 +22,7 @@ class User(BaseModel):
     pwd = Column(String())
     active = Column(Boolean())
     activation = Column(String())
+    
     # scopes: [user] [admin] 
     scopes = Column(ARRAY(String()))
 

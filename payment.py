@@ -7,9 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import create_async_engine
 
-import uuid
-
-from models import User, Item, Transaction, Wallet
+from models import User, Transaction, Wallet
 from server_init import app, HOST, PORT
 from Crypto.Hash import SHA1
 
